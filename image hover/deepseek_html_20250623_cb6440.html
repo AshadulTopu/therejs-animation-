@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Image Transition Card</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #4F4F4F;
+      color: white;
+      font-family: 'Oswald', sans-serif;
+      display: flex;
+      justify-content: center;
+      padding-top: 40px;
+    }
+
+    h1 {
+      font-size: 60px;
+    }
+
+    h3 {
+      font-weight: 400;
+      color: #FFFFFF;
+    }
+
+    h1,
+    h3 {
+      margin: 0;
+      padding: 0;
+    }
+
+    img.airplane {
+      width: 42px;
+      height: 39px;
+      margin: 0 20px;
+    }
+
+    .card-container {
+      position: relative;
+      height: 410px;
+      width: 690px;
+      box-shadow: 0px 10px 40px rgba(0, 0, 0, .4);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .overlay {
+      position: absolute;
+      background: rgba(0, 0, 0, .2);
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 2;
+    }
+
+    .flight-info {
+      position: relative;
+      z-index: 3;
+      padding: 30px;
+    }
+
+    .flight-locations {
+      display: flex;
+      align-items: center;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card-container" id="hoverTarget">
+    <div class="overlay"></div>
+    <div class="flight-info">
+      <h3>October 30 2023 12:35AM</h3>
+      <div class="flight-locations">
+        <h1>CPT</h1>
+        <img class="airplane" src="https://cdn-images-1.medium.com/max/800/1*QFU_XYAKOGJ9nunfqvem1w.png" />
+        <h1>JHB</h1>
+      </div>
+    </div>
+  </div>
+
+  <!-- Include Three.js and GSAP from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+
+  <script>
+    // Wait for DOM to load
+    document.addEventListener('DOMContentLoaded', function () {
+      const parent = document.getElementById('hoverTarget');
+
+      // Set up Three.js scene
+      const scene = new THREE.Scene();
+      const camera = new THREE.OrthographicCamera(
+        parent.offsetWidth / -2,
+        parent.offsetWidth / 2,
+        parent.offsetHeight / 2,
+        parent.offsetHeight / -2,
+        1,
+        1000
+      );
+
+      const renderer = new THREE.WebGLRenderer({ antialias: false });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(parent.offsetWidth, parent.offsetHeight);
+
+      // Insert canvas as first child of parent
+      parent.insertBefore(renderer.domElement, parent.firstChild);
+
+      // Load textures
+      const loader = new THREE.TextureLoader();
+      loader.setCrossOrigin('anonymous'); // Handle CORS
+
+      const texture1 = loader.load('https://cdn.pixabay.com/photo/2019/06/19/23/13/flowers-4285819_960_720.jpg');
+      const texture2 = loader.load('https://c0.wallpaperflare.com/preview/399/785/141/city-life-city-johannesburg-sandton.jpg');
+      const dispTexture = loader.load('https://images.pexels.com/photos/1097203/pexels-photo-1097203.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260');
+
+      // Shader uniforms
+      const uniforms = {
+        "texture1": { type: "t", value: texture1 },
+        "texture2": { type: "t", value: texture2 },
+        "disp": { type: "t", value: dispTexture },
+        "dispFactor": { type: "f", value: 0.0 },
+        "intensity1": { type: "f", value: 0.2 },
+        "intensity2": { type: "f", value: 0.1 },
+        "angle1": { type: "f", value: Math.PI / 4 },
+        "angle2": { type: "f", value: -Math.PI / 4 }
+      };
+
+      // Vertex shader
+      const vertexShader = `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `;
+
+      // Fragment shader
+      const fragmentShader = `
+        varying vec2 vUv;
+        uniform sampler2D texture1;
+        uniform sampler2D texture2;
+        uniform sampler2D disp;
+        uniform float dispFactor;
+        uniform float intensity1;
+        uniform float intensity2;
+        uniform float angle1;
+        uniform float angle2;
+
+        vec2 rotate(vec2 v, float a) {
+          float s = sin(a);
+          float c = cos(a);
+          mat2 m = mat2(c, -s, s, c);
+          return m * v;
+        }
+
+        void main() {
+          vec4 disp = texture2D(disp, vUv);
+          vec2 dispVec = vec2(disp.r, disp.g) * 2.0 - 1.0;
+          vec2 distPos1 = vUv + rotate(dispVec, angle1) * intensity1 * dispFactor;
+          vec2 distPos2 = vUv + rotate(dispVec, angle2) * intensity2 * (1.0 - dispFactor);
+          gl_FragColor = mix(texture2D(texture1, distPos1), texture2D(texture2, distPos2), dispFactor);
+        }
+      `;
+
+      // Create material with shaders
+      const material = new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+        transparent: true,
+        opacity: 1.0
+      });
+
+      // Create plane geometry
+      const geometry = new THREE.PlaneBufferGeometry(parent.offsetWidth, parent.offsetHeight);
+      const mesh = new THREE.Mesh(geometry, material);
+      scene.add(mesh);
+      camera.position.z = 1;
+
+      // Animation loop
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      // Hover effects
+      parent.addEventListener("mouseenter", function () {
+        gsap.to(uniforms.dispFactor, { duration: 1, value: 1 });
+      });
+
+      parent.addEventListener("mouseleave", function () {
+        gsap.to(uniforms.dispFactor, { duration: 1, value: 0 });
+      });
+
+      // Handle window resize
+      window.addEventListener('resize', function () {
+        camera.left = parent.offsetWidth / -2;
+        camera.right = parent.offsetWidth / 2;
+        camera.top = parent.offsetHeight / 2;
+        camera.bottom = parent.offsetHeight / -2;
+        camera.updateProjectionMatrix();
+        renderer.setSize(parent.offsetWidth, parent.offsetHeight);
+      });
+    });
+  </script>
+</body>
+
+</html>
