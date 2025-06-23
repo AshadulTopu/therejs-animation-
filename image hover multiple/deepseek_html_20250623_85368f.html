@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Services with 3D Transition Cards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #f5f5f5;
+      color: #333;
+      font-family: 'Oswald', sans-serif;
+      padding: 40px 0;
+    }
+
+    .services-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .services-title {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 40px;
+      color: #222;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+    }
+
+    .service-card {
+      position: relative;
+      height: 350px;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .card-overlay {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.2);
+      inset: 0;
+      z-index: 2;
+    }
+
+    .card-content {
+      position: relative;
+      z-index: 3;
+      padding: 25px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      color: white;
+    }
+
+    .card-content h3 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+
+    .card-content p {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="services-section">
+    <div class="services-container">
+      <h2 class="services-title">Our Services</h2>
+      <div class="services-grid">
+        <!-- Service Card 1 -->
+        <div class="service-card" data-front="./barn-9616520_1280.jpg" data-back="./barn-9616520_1280.jpg"
+          data-disp="./texture-1.jpeg">
+          <div class="card-overlay"></div>
+          <div class="card-content">
+            <h3>Web Development</h3>
+            <p>Custom websites and web applications tailored to your business needs.</p>
+          </div>
+        </div>
+
+        <!-- Service Card 2 -->
+        <div class="service-card" data-front="./building-9639806_1280.jpg" data-back="./building-9639806_1280.jpg"
+          data-disp="./texture-2.jpg">
+          <div class="card-overlay"></div>
+          <div class="card-content">
+            <h3>Mobile Apps</h3>
+            <p>iOS and Android applications with beautiful interfaces and smooth performance.</p>
+          </div>
+        </div>
+
+        <!-- Service Card 3 -->
+        <div class="service-card" data-front="./eibsee-8572003_1280.jpg" data-back="./eibsee-8572003_1280.jpg"
+          data-disp="./texture-3.jpg">
+          <div class="card-overlay"></div>
+          <div class="card-content">
+            <h3>UI/UX Design</h3>
+            <p>User-centered designs that improve engagement and conversion rates.</p>
+          </div>
+        </div>
+
+        <!-- Service Card 4 -->
+        <div class="service-card" data-front="./mountain-9631829_1280.jpg" data-back="./mountain-9631829_1280.jpg"
+          data-disp="./texture-4.jpg">
+          <div class="card-overlay"></div>
+          <div class="card-content">
+            <h3>Digital Marketing</h3>
+            <p>Comprehensive strategies to grow your online presence and customer base.</p>
+          </div>
+        </div>
+
+        <!-- Service Card 5 -->
+        <div class="service-card" data-front="./mountains-9580848_1280.jpg" data-back="./mountains-9580848_1280.jpg"
+          data-disp="./texture-5.jpg">
+          <div class="card-overlay"></div>
+          <div class="card-content">
+            <h3>Cloud Solutions</h3>
+            <p>Scalable cloud infrastructure to support your business growth.</p>
+          </div>
+        </div>
+
+        <!-- Service Card 6 -->
+        <div class="service-card" data-front="./spa-9554878_1280.jpg" data-back="./spa-9554878_1280.jpg"
+          data-disp="./texture-6.jpg">
+          <div class="card-overlay"></div>
+          <div class="card-content">
+            <h3>Data Analytics</h3>
+            <p>Actionable insights from your data to drive business decisions.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Include Three.js and GSAP from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Initialize all service cards
+      const serviceCards = document.querySelectorAll('.service-card');
+      const cardInstances = [];
+
+      // Vertex shader
+      const vertexShader = `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `;
+
+      // Fragment shader
+      const fragmentShader = `
+        varying vec2 vUv;
+        uniform sampler2D texture1;
+        uniform sampler2D texture2;
+        uniform sampler2D disp;
+        uniform float dispFactor;
+        uniform float intensity1;
+        uniform float intensity2;
+        uniform float angle1;
+        uniform float angle2;
+
+        vec2 rotate(vec2 v, float a) {
+          float s = sin(a);
+          float c = cos(a);
+          mat2 m = mat2(c, -s, s, c);
+          return m * v;
+        }
+
+        void main() {
+          vec4 disp = texture2D(disp, vUv);
+          vec2 dispVec = vec2(disp.r, disp.g) * 2.0 - 1.0;
+          vec2 distPos1 = vUv + rotate(dispVec, angle1) * intensity1 * dispFactor;
+          vec2 distPos2 = vUv + rotate(dispVec, angle2) * intensity2 * (1.0 - dispFactor);
+          gl_FragColor = mix(texture2D(texture1, distPos1), texture2D(texture2, distPos2), dispFactor);
+        }
+      `;
+
+      // Initialize each card
+      serviceCards.forEach((card) => {
+        const frontImage = card.dataset.front;
+        const backImage = card.dataset.back;
+        const dispImage = card.dataset.disp;
+
+        // Set up Three.js scene for this card
+        const scene = new THREE.Scene();
+        const camera = new THREE.OrthographicCamera(
+          card.offsetWidth / -2,
+          card.offsetWidth / 2,
+          card.offsetHeight / 2,
+          card.offsetHeight / -2,
+          1,
+          1000
+        );
+
+        const renderer = new THREE.WebGLRenderer({ antialias: false });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(card.offsetWidth, card.offsetHeight);
+        card.insertBefore(renderer.domElement, card.firstChild);
+
+        // Load textures
+        const loader = new THREE.TextureLoader();
+        loader.setCrossOrigin('anonymous');
+
+        const texture1 = loader.load(frontImage);
+        const texture2 = loader.load(backImage);
+        const dispTexture = loader.load(dispImage);
+
+        // Shader uniforms
+        const uniforms = {
+          "texture1": { type: "t", value: texture1 },
+          "texture2": { type: "t", value: texture2 },
+          "disp": { type: "t", value: dispTexture },
+          "dispFactor": { type: "f", value: 0.0 },
+          "intensity1": { type: "f", value: 0.2 },
+          "intensity2": { type: "f", value: 0.1 },
+          "angle1": { type: "f", value: Math.PI / 4 },
+          "angle2": { type: "f", value: -Math.PI / 4 }
+        };
+
+        // Create material with shaders
+        const material = new THREE.ShaderMaterial({
+          uniforms: uniforms,
+          vertexShader: vertexShader,
+          fragmentShader: fragmentShader,
+          transparent: true,
+          opacity: 1.0
+        });
+
+        // Create plane geometry
+        const geometry = new THREE.PlaneBufferGeometry(card.offsetWidth, card.offsetHeight);
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+        camera.position.z = 1;
+
+        // Store instance for animation
+        cardInstances.push({
+          renderer,
+          scene,
+          camera,
+          uniforms
+        });
+
+        // Hover effects
+        card.addEventListener("mouseenter", function () {
+          gsap.to(uniforms.dispFactor, { duration: 1, value: 1 });
+        });
+
+        card.addEventListener("mouseleave", function () {
+          gsap.to(uniforms.dispFactor, { duration: 1, value: 0 });
+        });
+      });
+
+      // Animation loop
+      function animate() {
+        requestAnimationFrame(animate);
+        cardInstances.forEach(instance => {
+          instance.renderer.render(instance.scene, instance.camera);
+        });
+      }
+      animate();
+
+      // Handle window resize
+      // window.addEventListener('resize', function () {
+      //   serviceCards.forEach((card, index) => {
+      //     const instance = cardInstances[index];
+      //     instance.camera.left = card.offsetWidth / -2;
+      //     instance.camera.right = card.offsetWidth / 2;
+      //     instance.camera.top = card.offsetHeight / 2;
+      //     instance.camera.bottom = card.offsetHeight / -2;
+      //     instance.camera.updateProjectionMatrix();
+      //     instance.renderer.setSize(card.offsetWidth, card.offsetHeight);
+      //   });
+      // });
+    });
+  </script>
+</body>
+
+</html>
