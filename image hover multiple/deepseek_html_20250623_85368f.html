@@ -214,6 +214,9 @@
         );
 
         const renderer = new THREE.WebGLRenderer({ antialias: false });
+        // Set the class name for the canvas element
+        renderer.domElement.classList.add('glitch-card-canvas');
+
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(card.offsetWidth, card.offsetHeight);
         card.insertBefore(renderer.domElement, card.firstChild);

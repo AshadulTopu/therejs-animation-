@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RGB Kinetic Slider</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Playfair+Display:wght@700&family=Roboto:wght@400&display=swap"
+    rel="stylesheet">
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hmongouachon/rgbKineticSlider/js/libs/TweenMax.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hmongouachon/rgbKineticSlider/js/libs/imagesLoaded.pkgd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hmongouachon/rgbKineticSlider/js/libs/pixi.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hmongouachon/rgbKineticSlider/js/libs/pixi-filters.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hmongouachon/rgbKineticSlider/js/rgbKineticSlider.js"></script> -->
+
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.3/TweenMax.min.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/imagesloaded/4.1.4/imagesloaded.pkgd.min.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/gh/hmongouachon/rgbKineticSlider/js/libs/imagesLoaded.pkgd.min.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.8.7/pixi.min.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/gh/hmongouachon/rgbKineticSlider/js/libs/pixi.min.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.8.7/pixi-filters.min.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/gh/hmongouachon/rgbKineticSlider/js/libs/pixi-filters.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hmongouachon/rgbKineticSlider@master/js/rgbKineticSlider.js"></script>
+
+
+
+  <script src="./main.js"></script>
+</head>
+
+<style>
+  /* Animation for background gradient */
+  body {
+    background: linear-gradient(-45deg, #4571d8, #21586f, #666b7a, #2b5ea5);
+    background-size: 400% 400%;
+    animation: bg-anim 15s ease infinite;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+  }
+
+  @keyframes bg-anim {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 986px) {
+
+    .ticket-list:nth-child(3),
+    .ticket-list:nth-child(4) {
+      display: none;
+    }
+  }
+
+  @media (max-width: 800px) {
+    .ticket-list:nth-child(2) {
+      display: none;
+    }
+
+    .main-nav.next {
+      right: 20px;
+    }
+
+    .main-nav.prev {
+      left: 20px;
+    }
+  }
+
+  @media (max-width: 590px) {
+
+    .ticket-list:nth-child(5),
+    .ticket-list:nth-child(6) {
+      display: none;
+    }
+
+    .slider {
+      width: 26px;
+      height: 26px;
+    }
+
+    .slider svg {
+      width: 20px;
+    }
+
+    /* .slider:hover {
+      transform: scale(1.1);
+    } */
+
+    .main-nav {
+      top: 0;
+      padding: 20px 5px;
+    }
+
+    .main-nav.next {
+      left: 48px;
+    }
+
+    .main-nav.prev {
+      left: 10px;
+    }
+  }
+</style>
+
+<body>
+  <div class="container relative mx-auto h-screen max-h-[660px] rounded overflow-y-auto overflow-x-hidden">
+    <div id="rgbKineticSlider" class="rgbKineticSlider"></div>
+
+    <!-- Menu Button -->
+    <a href="#" class="menu absolute top-5 right-5 text-gray-100">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none"
+        stroke-linecap="round" stroke-linejoin="round" class="w-7">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <line x1="4" y1="8" x2="20" y2="8" />
+        <line x1="4" y1="16" x2="20" y2="16" />
+      </svg>
+    </a>
+
+    <!-- Ticket Component -->
+    <div class="wrapper absolute max-w-[900px] w-[98%] top-[calc(100%-160px)] left-1/2 -translate-x-1/2 text-gray-100">
+      <!-- <div class="separator border border-gray-100"></div>
+      <div class="separator-text absolute top-5">Tours</div> -->
+
+      <!-- <div
+        class="ticket absolute top-12 left-1/2 -translate-x-1/2 font-sans flex items-center justify-center bg-gray-200/50 backdrop-blur-sm px-4 py-3 rounded"> -->
+      <!-- Ticket items -->
+      <!-- <div class="ticket-list flex items-center pr-4">
+          <div class="ticket-text__wrapper flex flex-col">
+            <span class="ticket-title text-xs">Country</span>
+            <span class="ticket-subtitle uppercase text-sm font-medium mt-1 tracking-wider">Italy</span>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" class="w-5 ml-12">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </div> -->
+
+      <!-- Add more ticket-list items as needed -->
+
+      <!-- Search Button -->
+      <!-- <div class="search bg-orange-500 absolute -right-14 h-full w-16 flex justify-center items-center rounded-r">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+            fill="none" stroke-linecap="round" stroke-linejoin="round" class="w-5">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <circle cx="10" cy="10" r="7" />
+            <line x1="21" y1="21" x2="15" y2="15" />
+          </svg>
+        </div> -->
+      <!-- </div> -->
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+      <a href="#" class="main-nav prev absolute top-1/2 left-10 z-10 p-5" data-nav="previous">
+        <div
+          class="slider prev border border-white rounded-full w-11 h-11 flex items-center justify-center bg-gradient-to-r from-white/40 to-transparent bg-[length:200%_100%] bg-right-bottom hover:scale-150 transition-all duration-400">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+            class="rotate-180 w-7">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+          </svg>
+        </div>
+      </a>
+      <a href="#" class="main-nav next absolute top-1/2 right-10 z-10 p-5" data-nav="next">
+        <div
+          class="slider next border border-white rounded-full w-11 h-11 flex items-center justify-center bg-gradient-to-r from-white/40 to-transparent bg-[length:200%_100%] bg-right-bottom hover:scale-150 transition-all duration-400">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="w-7">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+          </svg>
+        </div>
+      </a>
+    </nav>
+  </div>
+</body>
+
+</html>
