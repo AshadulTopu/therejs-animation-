@@ -71,6 +71,17 @@ document.addEventListener('DOMContentLoaded', () => {
         mobileTextSubTitleSize: 16,
         textSubTitleLetterspacing: 2,
         textSubTitleOffsetTop: 90,
-        mobileTextSubTitleOffsetTop: 90
+        mobileTextSubTitleOffsetTop: 90,
+
+        onInit: function () {
+            const canvas = document.querySelector('#rgbKineticSlider canvas');
+            if (canvas) {
+                canvas.classList.add('kinetic-canvas');
+                canvas.style.position = 'absolute';
+            }
+        }
     });
+
+
+
 });
